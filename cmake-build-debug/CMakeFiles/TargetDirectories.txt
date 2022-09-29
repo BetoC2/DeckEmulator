@@ -1,0 +1,3 @@
+C:/Users/alber/Documents/c_box/DeckEmulator/cmake-build-debug/CMakeFiles/DeckEmulator.dir
+C:/Users/alber/Documents/c_box/DeckEmulator/cmake-build-debug/CMakeFiles/edit_cache.dir
+C:/Users/alber/Documents/c_box/DeckEmulator/cmake-build-debug/CMakeFiles/rebuild_cache.dir
