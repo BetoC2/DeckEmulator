@@ -12,15 +12,24 @@ void cargar(char*, char*, char*);
 void imprimir(char *deck, char *mano, int n){
     printf("[");
     for(int i = 0; i <= n; i++){
-        if (deck[i] != 'x') {
+        if (deck[i] != 'x' && deck[i] != 'D') {
             if (i != n)
                 printf("%c, ", deck[i]);
             else
                 printf("%c", deck[i]);
         }
+        else if(deck[i] == 'D'){
+            if(i != n)
+                printf("10, ");
+            else
+                printf("10");
+        }
     }
     printf("]");
-    printf(" <%c>\n", *mano);
+    if (*mano != 'D')
+        printf(" <%c>\n", *mano);
+    else
+        printf("<10>\n");
 }
 
 void crear_baraja(char *target) {
@@ -41,9 +50,9 @@ void crear_baraja(char *target) {
 void pull(char *ptr, char *n, char *mano){
 
 
-    printf("[t] - Poner en la parte superior\n");
+    printf("\n[t] - Poner en la parte superior\n");
     printf("[b] - Poner en la parte inferior\n");
-    printf("[d] - Descartar\n[s] - Guardar partida\n[l] Cargar partida\n");
+    printf("[d] - Descartar\n[s] - Guardar partida\n[l] Cargar partida\n\n");
 
 
     char input[255];
@@ -52,6 +61,7 @@ void pull(char *ptr, char *n, char *mano){
     imprimir(ptr, mano,*n);
 
     while(opcion == 'x'){
+        printf("Opcion para carta: ");
         fgets(input,255,stdin);
         char opcion = input[0];
 
@@ -63,6 +73,8 @@ void pull(char *ptr, char *n, char *mano){
                 *mano = ' ';
                 return;
             case 'b':
+                if (*mano != ' ')
+                    ptr[*n] = *mano;
                 bottom(ptr, *n);
                 printf("La carta se coloco en la parte inferior\n");
                 opcion = 'a';
@@ -104,25 +116,59 @@ void discard(char *ptr, int n){
 void guardar(char *ptr, char *mano, char *n){
 
     FILE *file = fopen("./deck", "w");
-
     rewind(file);
-    for (int i = 0; i < 5; i++){
-        fwrite(ptr + i, sizeof(char), 1, file);
-    }
-    fwrite(mano, sizeof(char), 1, file);
-    fwrite(n, sizeof(char), 1, file);
 
+    unsigned short vacio = 0;
+    char vacio_2 = 0;
+    int indice = 10000;
+    int letra;
+    char a = *ptr;
+
+    for (int i = 0; i < 5; i++){
+        a = ptr[i];
+        letra = (a == 'D')? 1: (a == 'J')? 2: (a == 'Q')? 3: (a == 'K')? 4: (a == 'A')? 5: 0;
+        vacio = vacio + (indice * letra);
+        indice = indice/10;
+    }
+
+    fwrite(&vacio, sizeof(unsigned short), 1, file);
+
+    a = *mano;
+    letra = (a == 'D')? 1: (a == 'J')? 2: (a == 'Q')? 3: (a == 'K')? 4: (a == 'A')? 5: 0;
+    vacio_2 = vacio_2 + (letra * 10);
+    vacio_2 += *n;
+
+    fwrite(&vacio_2, sizeof(char), 1, file);
     fclose(file);
 }
 
 void cargar(char *ptr, char *mano, char *n){
     FILE *file = fopen("./deck", "r");
 
+    unsigned short vacio = 0;
+    char vacio_2 = 0;
+    char letra;
+    int indice = 10000;
+    int a;
+
+    fread(&vacio, sizeof(unsigned short), 1, file);
+    fread(&vacio_2, sizeof(char), 1, file);
+
+
     for (int i = 0; i < 5; i++){
-        fread(ptr + i, sizeof(char), 1, file);
+        a = vacio/indice;
+        vacio = vacio - (a * indice);
+        indice = indice/10;
+        letra = (a == 1)? 'D': (a == 2)? 'J': (a == 3)? 'Q': (a == 4)? 'K': (a == 5)? 'A': 'x';
+        ptr[i] = letra;
     }
-    fread(mano, sizeof(char), 1, file);
-    fread(n, sizeof(char), 1, file);
+
+    a = vacio_2/10;
+    letra = (a == 1)? 'D': (a == 2)? 'J': (a == 3)? 'Q': (a == 4)? 'K': (a == 5)? 'A': ' ';
+    *mano = letra;
+
+    vacio_2 = vacio_2 - (a * 10);
+    *n = vacio_2;
 
     fclose(file);
 }
@@ -142,7 +188,7 @@ int main(void) {
     printf("[e] - Salir del programa\n");
 
     while (baraja[0] != 'x'){
-        printf("Baraja: ");
+        printf("\nBaraja: ");
         imprimir(baraja, &en_mano, cartas);
         printf("Elige tu opcion: ");
 
