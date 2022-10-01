@@ -116,7 +116,6 @@ void discard(char *ptr, int n){
 void guardar(char *ptr, char *mano, char *n){
 
     FILE *file = fopen("./deck", "w");
-    rewind(file);
 
     unsigned short vacio = 0;
     char vacio_2 = 0;
